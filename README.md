@@ -71,8 +71,8 @@ modifies the layers of the map style to use the 'text-field' that matches the br
 
 -   `options` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Options to configure the plugin.
     -   `options.supportedLanguages` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>?** List of supported languages. Default: ['ar', 'en', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'zh', 'zh-CN', 'zh-TW', 'zh-HK']
-    -   `options.defaultLanguage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of the default language to initialize style after loading.
-    -   `options.excludedLayerIds` **[string[]](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of the layers that should be excluded from translation.
+    -   `options.defaultLanguage` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of the default language to initialize style after loading. Default: auto match the browser language.
+    -   `options.excludedLayerIds` **[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)&lt;[string(https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)?** Name of the layers that should be excluded from translation.
 
 #### setLanguage
 
