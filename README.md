@@ -17,22 +17,22 @@ This is an improved version of [Mapbox GL Language](https://github.com/mapbox/ma
 This plugin works with official Mapbox styles and [OpenMapTiles' styles](https://github.com/openmaptiles/osm-bright-gl-style):
 
 Mapbox Streets v8 Vector Tile Styles
-- `mapbox://mapbox-streets-v11`
-- `mapbox://mapbox-outdoors-v11`
-- `mapbox://mapbox-dark-v10`
-- `mapbox://mapbox-light-v10`
-- `mapbox://mapbox-satellite-streets-v11`
-- `mapbox://mapbox-traffic-day-v4`
-- `mapbox://mapbox-traffic-night-v4`
+- `mapbox://styles/mapbox/streets-v11`
+- `mapbox://styles/mapbox/outdoors-v11`
+- `mapbox://styles/mapbox/dark-v10`
+- `mapbox://styles/mapbox/light-v10`
+- `mapbox://styles/mapbox/satellite-streets-v11`
+- `mapbox://styles/mapbox/traffic-day-v4`
+- `mapbox://styles/mapbox/traffic-night-v4`
 
 Mapbox Streets v7 Vector Tile Styles
-- `mapbox://mapbox-streets-v10`
-- `mapbox://mapbox-outdoors-v10`
-- `mapbox://mapbox-dark-v9`
-- `mapbox://mapbox-light-v9`
-- `mapbox://mapbox-satellite-streets-v9`
-- `mapbox://mapbox-traffic-day-v2`
-- `mapbox://mapbox-traffic-night-v2`
+- `mapbox://styles/mapbox/streets-v10`
+- `mapbox://styles/mapbox/outdoors-v10`
+- `mapbox://styles/mapbox/dark-v9`
+- `mapbox://styles/mapbox/light-v9`
+- `mapbox://styles/mapbox/satellite-streets-v9`
+- `mapbox://styles/mapbox/traffic-day-v2`
+- `mapbox://styles/mapbox/traffic-night-v2`
 
 Check the demo: http://coocy.github.io/mapbox-gl-language/example/
 
