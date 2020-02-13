@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mapbox GL Language</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.js"></script>
+    <script src="../index.js"></script>
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+        .toggle-menu {
+            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding:10px;
+        }
+        label {
+          display:block;
+          border-bottom:1px solid #eee;
+          font-size: 16px;
+          padding:15px;
+        }
+         
+        .toggle-menu .toggle-menu-inner {
+            display:inline-block;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow:0 0 5px rgba(0,0,0,.2);
+        }
+         
+        .toggle-menu-inner button {
+            outline:none;
+            color: #000;
+            display: inline-block;
+            vertical-align: middle;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            transition:background .3s;
+            -webkit-appearance:none;
+            appearance:none;
+        }
+        .toggle-menu-inner button:first-child {
+            border-radius:0 0 0 5px;
+        }
+        .toggle-menu-inner button:last-child {
+            border-radius:0 0 5px 0;
+        }
+         
+        .toggle-menu-inner button:hover {
+            background: #eee;
+        }
+        .toggle-menu-inner .highlight,
+        .toggle-menu-inner .highlight:hover{
+            color:#fff;
+            background:#5160f8;
+        }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<div class="toggle-menu top">
+    <div>
+        <div class="toggle-menu-inner">
+            <label>Switch Language</label>
+            <div id="languages"></div>
+        </div>
+    </div>
+    <div>
+        <div class="toggle-menu-inner">
+            <label>Mapbox Streets v8 Styles</label>
+            <div id="styles_v8"></div>
+        </div>
+    </div>
+    <div>
+        <div class="toggle-menu-inner">
+            <label>Mapbox Streets v7 Styles</label>
+            <div id="styles_v7"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibHVrYXNtYXJ0aW5lbGxpIiwiYSI6ImNpem85dmhwazAyajIyd284dGxhN2VxYnYifQ.HQCmyhEXZUTz3S98FMrVAQ';
+
+var mapStyle = 'mapbox://styles/mapbox/outdoors-v11';
+var map = new mapboxgl.Map({
+    container: 'map',
+    hash: true,
+    style: mapStyle,
+    center: [85.75, 31.1],
+    minZoom: 2,
+    zoom: 3
+});
+var mapboxLanguage = new MapboxLanguage();
+map.addControl(mapboxLanguage);
+
+var languageButtons = document.getElementById('languages');
+var languages = mapboxLanguage.supportedLanguages;
+var highlightLanguageButton;
+var highlightStyleButton;
+languages.forEach(function(language) {
+    var languageButton = document.createElement('button');
+    languageButton.id = 'language_' + language;
+    languageButton.innerHTML = language.toUpperCase();
+    languageButton.addEventListener('click', function() {
+        mapboxLanguage.setLanguage(language);
+        highlightLanguageButton && (highlightLanguageButton.className = '');
+        this.className = 'highlight';
+        highlightLanguageButton = this;
+    });
+    languageButtons.appendChild(languageButton);
+});
+
+map.on('style.load', function() {
+    languages.forEach(function(language) {
+        var languageButton = document.getElementById('language_' + language);
+        if (mapboxLanguage.currentLanguage == language) {
+            highlightLanguageButton && (highlightLanguageButton.className = '');
+            languageButton.className = 'highlight';
+            highlightLanguageButton = languageButton;
+        }
+    });
+});
+
+var styles = {
+    'v8': [
+        'outdoors-v11',
+        'streets-v11',
+        'light-v10',
+        'dark-v10'
+    ],
+    'v7': [
+        'outdoors-v10',
+        'streets-v10',
+        'light-v9',
+        'dark-v9'
+    ]
+};
+
+function addStyleButton(styleVersion) {
+    var styleButtons = document.getElementById('styles_' + styleVersion);
+    styles[styleVersion].forEach(function(style) {
+        var styleButton = document.createElement('button');
+        var currentStyle = 'mapbox://styles/mapbox/' + style;
+        styleButton.setAttribute('mapbox-style', currentStyle);
+        styleButton.id = 'style_' + style;
+        styleButton.innerHTML = style;
+        if (currentStyle == mapStyle) {
+            styleButton.className = 'highlight';
+            highlightStyleButton = styleButton;
+        }
+        styleButton.addEventListener('click', function() {
+            map.setStyle(this.getAttribute('mapbox-style'));
+            highlightStyleButton && (highlightStyleButton.className = '');
+            this.className = 'highlight';
+            highlightStyleButton = this;
+        });
+        styleButtons.appendChild(styleButton);
+    });
+}
+
+for (var styleVersion in styles) {
+   addStyleButton(styleVersion);
+}
+
+</script>
+
+</body>
+</html>

@@ -4,12 +4,12 @@
  * @constructor
  * @param {object} options - Options to configure the plugin.
  * @param {string[]} [options.supportedLanguages] - List of supported languages
- * @param {Function} [options.languageTransform] - Custom style transformation to apply
- * @param {RegExp} [options.languageField=/^\{name/] - RegExp to match if a text-field is a language field
- * @param {Function} [options.getLanguageField] - Given a language choose the field in the vector tiles
- * @param {string} [options.languageSource] - Name of the source that contains the different languages.
  * @param {string} [options.defaultLanguage] - Name of the default language to initialize style after loading.
  * @param {string[]} [options.excludedLayerIds] - Name of the layers that should be excluded from translation.
+ *
+ * ==ClosureCompiler==
+ * @compilation_level SIMPLE_OPTIMIZATIONS
+ * ==/ClosureCompiler==
  */
 function MapboxLanguage(options) {
   options = Object.assign({}, options);
@@ -17,204 +17,215 @@ function MapboxLanguage(options) {
     throw new Error('MapboxLanguage needs to be called with the new keyword');
   }
 
-  this.setLanguage = this.setLanguage.bind(this);
   this._initialStyleUpdate = this._initialStyleUpdate.bind(this);
 
   this._defaultLanguage = options.defaultLanguage;
-  this._isLanguageField = options.languageField || /^\{name/;
-  this._getLanguageField = options.getLanguageField || function nameField(language) {
-    return language === 'mul' ? '{name}' : '{name_' + language + '}';
-  };
-  this._languageSource = options.languageSource || null;
-  this._languageTransform = options.languageTransform || function (style, language) {
-    if (language === 'ar') {
-      return noSpacing(style);
-    } else {
-      return standardSpacing(style);
-    }
-  };
   this._excludedLayerIds = options.excludedLayerIds || [];
-  this.supportedLanguages = options.supportedLanguages || ['ar', 'en', 'es', 'fr', 'de', 'ja', 'ko', 'mul', 'pt', 'ru', 'zh'];
+  this.supportedLanguages = options.supportedLanguages || ['ar', 'en', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'zh', 'zh-CN', 'zh-TW', 'zh-HK'];
 }
-
-function standardSpacing(style) {
-  var changedLayers = style.layers.map(function (layer) {
-    if (!(layer.layout || {})['text-field']) return layer;
-    var spacing = 0;
-    if (layer['source-layer'] === 'state_label') {
-      spacing = 0.15;
-    }
-    if (layer['source-layer'] === 'marine_label') {
-      if (/-lg/.test(layer.id)) {
-        spacing = 0.25;
-      }
-      if (/-md/.test(layer.id)) {
-        spacing = 0.15;
-      }
-      if (/-sm/.test(layer.id)) {
-        spacing = 0.1;
-      }
-    }
-    if (layer['source-layer'] === 'place_label') {
-      if (/-suburb/.test(layer.id)) {
-        spacing = 0.15;
-      }
-      if (/-neighbour/.test(layer.id)) {
-        spacing = 0.1;
-      }
-      if (/-islet/.test(layer.id)) {
-        spacing = 0.01;
-      }
-    }
-    if (layer['source-layer'] === 'airport_label') {
-      spacing = 0.01;
-    }
-    if (layer['source-layer'] === 'rail_station_label') {
-      spacing = 0.01;
-    }
-    if (layer['source-layer'] === 'poi_label') {
-      if (/-scalerank/.test(layer.id)) {
-        spacing = 0.01;
-      }
-    }
-    if (layer['source-layer'] === 'road_label') {
-      if (/-label-/.test(layer.id)) {
-        spacing = 0.01;
-      }
-      if (/-shields/.test(layer.id)) {
-        spacing = 0.05;
-      }
-    }
-    return Object.assign({}, layer, {
-      layout: Object.assign({}, layer.layout, {
-        'text-letter-spacing': spacing
-      })
-    });
-  });
-
-  return Object.assign({}, style, {
-    layers: changedLayers
-  });
-}
-
-function noSpacing(style) {
-  var changedLayers = style.layers.map(function (layer) {
-    if (!(layer.layout || {})['text-field']) return layer;
-    var spacing = 0;
-    return Object.assign({}, layer, {
-      layout: Object.assign({}, layer.layout, {
-        'text-letter-spacing': spacing
-      })
-    });
-  });
-
-  return Object.assign({}, style, {
-    layers: changedLayers
-  });
-}
-
-function isNameStringField(isLangField, property) {
-  return typeof property === 'string' && isLangField.test(property);
-}
-
-function isNameFunctionField(isLangField, property) {
-  return property.stops && property.stops.filter(function (stop) {
-    return isLangField.test(stop[1]);
-  }).length > 0;
-}
-
-function adaptPropertyLanguage(isLangField, property, languageFieldName) {
-  if (isNameStringField(isLangField, property)) return languageFieldName;
-  if (isNameFunctionField(isLangField, property)) {
-    var newStops = property.stops.map(function (stop) {
-      if (isLangField.test(stop[1])) {
-        return [stop[0], languageFieldName];
-      }
-      return stop;
-    });
-    return Object.assign({}, property, {
-      stops: newStops
-    });
-  }
-  return property;
-}
-
-function changeLayerTextProperty(isLangField, layer, languageFieldName, excludedLayerIds) {
-  if (layer.layout && layer.layout['text-field'] && excludedLayerIds.indexOf(layer.id) === -1) {
-    return Object.assign({}, layer, {
-      layout: Object.assign({}, layer.layout, {
-        'text-field': adaptPropertyLanguage(isLangField, layer.layout['text-field'], languageFieldName)
-      })
-    });
-  }
-  return layer;
-}
-
-function findStreetsSource(style) {
-  var sources = Object.keys(style.sources).filter(function (sourceName) {
-    var source = style.sources[sourceName];
-    return /mapbox-streets-v\d/.test(source.url);
-  });
-  return sources[0];
-}
-
-/**
- * Explicitly change the language for a style.
- * @param {object} style - Mapbox GL style to modify
- * @param {string} language - The language iso code
- * @returns {object} the modified style
- */
-MapboxLanguage.prototype.setLanguage = function (style, language) {
-  if (this.supportedLanguages.indexOf(language) < 0) throw new Error('Language ' + language + ' is not supported');
-  var streetsSource = this._languageSource || findStreetsSource(style);
-  if (!streetsSource) return style;
-
-  var field = this._getLanguageField(language);
-  var isLangField = this._isLanguageField;
-  var excludedLayerIds = this._excludedLayerIds;
-  var changedLayers = style.layers.map(function (layer) {
-    if (layer.source === streetsSource) return changeLayerTextProperty(isLangField, layer, field, excludedLayerIds);
-    return layer;
-  });
-
-  var languageStyle = Object.assign({}, style, {
-    layers: changedLayers
-  });
-
-  return this._languageTransform(languageStyle, language);
-};
-
-MapboxLanguage.prototype._initialStyleUpdate = function () {
-  var style = this._map.getStyle();
-  var language = this._defaultLanguage || browserLanguage(this.supportedLanguages);
-
-  // We only update the style once
-  this._map.off('styledata', this._initialStyleUpdate);
-  this._map.setStyle(this.setLanguage(style, language));
-};
 
 function browserLanguage(supportedLanguages) {
   var language = navigator.languages ? navigator.languages[0] : (navigator.language || navigator.userLanguage);
   var parts = language.split('-');
   var languageCode = language;
-  if (parts.length > 1) {
+  if (parts.length > 1 && 'zh' !== parts[0]) {
     languageCode = parts[0];
   }
+
   if (supportedLanguages.indexOf(languageCode) > -1) {
     return languageCode;
   }
   return null;
 }
 
+function filterTextFiled(field, languageField) {
+  if (field.stops) {
+    var hasLanguageTextField = false;
+    var stop;
+    for (var i = 0; i < field.stops.length; i++) {
+      stop = field.stops[i]
+      if (isLanguageTextField(stop[1])) {
+        hasLanguageTextField = true;
+        break;
+      }
+    }
+    if (hasLanguageTextField) {
+      return languageField;
+    }
+  } else if (isLanguageTextField(field)) {
+    return languageField;
+  }
+  return field;
+}
+
+function isLanguageTextField(field) {
+  if (field instanceof Array && 'get' === field[0]) {
+    field = field[1];
+  }
+  if (typeof field === 'string' && /^\{?name/.test(field)) {
+    return true;
+  }
+  if (field instanceof Array) {
+    var hasLanguageTextField = false;
+    for (var i = 0; i < field.length; i++) {
+      if (isLanguageTextField(field[i])) {
+        hasLanguageTextField = true;
+      }
+    }
+    return hasLanguageTextField;
+  }
+  return false;
+}
+
+function changeLayerTextProperty(layer, languageField, excludedLayerIds) {
+  var newLayerData;
+  if ([
+      'admin-0-boundary',
+      'admin-1-boundary',
+      'admin-0-boundary-disputed',
+      'admin-1-boundary-bg',
+      'admin-0-boundary-bg'
+    ].indexOf(layer.id) > -1
+  ) {
+    newLayerData = {
+      filter: [
+        'match',
+        ['get', 'worldview'],
+        ['all', 'CN'],
+        true,
+        false
+      ]
+    };
+  }
+
+  if (layer.layout && layer.layout['text-field'] && excludedLayerIds.indexOf(layer.id) === -1) {
+    var textField = filterTextFiled(layer.layout['text-field'], languageField);
+    newLayerData = newLayerData || {};
+    newLayerData.layout =  Object.assign({}, layer.layout, {
+      "text-line-height": 1.35,
+      'text-field': textField
+    });
+  }
+
+  return newLayerData ? Object.assign({}, layer, newLayerData) : layer;
+}
+
+function getLanguageTextField(language) {
+  var zhSubName;
+  if (0 === language.indexOf('zh')) {
+    zhSubName = ('zh-TW' === language || 'zh-HK' === language)  ? 'Hant' : 'Hans';
+    language = 'zh';
+  }
+  var _styleExpressAny = ['any'],
+    _styleExpressCoalesce = ['coalesce'],
+    languageNames = [
+      'name_' + language,
+      'name:' + language
+    ];
+
+  if (zhSubName) {
+    languageNames.unshift('name_zh-' + zhSubName);
+  }
+
+  for (var i = 0; i < languageNames.length; i++) {
+    _styleExpressAny.push(['has', languageNames[i]]);
+    _styleExpressCoalesce.push(['get', languageNames[i]]);
+  }
+
+  _styleExpressCoalesce = [
+    'case',
+    ['==', _styleExpressCoalesce, '中華民國'], '台灣',
+    _styleExpressCoalesce
+  ];
+
+  var textField = [
+    'case',
+
+    // If the point's languages don't contain current map language, then only show the point's local language name.
+    [
+      '!',
+      _styleExpressAny
+    ],
+    ['get', 'name'], 
+
+    // If the point's local language name is the same to current map language, then only show the point's local language name.
+    [
+      'all',
+      _styleExpressAny,
+      [
+        'any',
+        [
+          '==', 
+          _styleExpressCoalesce,
+          ['get', 'name']
+        ],
+        [
+          'in', 
+          _styleExpressCoalesce,
+          ['get', 'name']
+        ],
+        [
+          'in', 
+          ['get', 'name'],
+          _styleExpressCoalesce
+        ]
+      ]
+    ],
+    _styleExpressCoalesce,
+
+    // Default: 
+    // If the point's local language name is not the same to current map language, 
+    // then show both current map language and the point's local language name.
+    [
+      'format', 
+      _styleExpressCoalesce, {},
+      '\n', {},
+      ['get', 'name'], {"font-scale": 0.8}
+    ]
+  ];
+
+  return textField;
+}
+
+/**
+ * Explicitly change the language for a style.
+ * @param {string} language - The language iso code
+ * @returns {object} the modified style
+ */
+MapboxLanguage.prototype.setLanguage = function (language) {
+  if (this.supportedLanguages.indexOf(language) < 0) {
+    throw new Error('Language ' + language + ' is not supported');
+  }
+  var style = this._mapStyle;
+  var excludedLayerIds = this._excludedLayerIds;
+  var changedLayers = style.layers.map(function (layer) {
+    var languageTextField = getLanguageTextField(language);
+    return changeLayerTextProperty(layer, languageTextField, excludedLayerIds);
+  });
+
+  var languageStyle = Object.assign({}, style, {
+    layers: changedLayers
+  });
+
+  this.currentLanguage = language;
+  this._map.setStyle(languageStyle);
+};
+
+MapboxLanguage.prototype._initialStyleUpdate = function (e) {
+  this._mapStyle = this._map.getStyle();
+  var language = this.currentLanguage || this._defaultLanguage || browserLanguage(this.supportedLanguages);
+  this.setLanguage(language);
+};
+
 MapboxLanguage.prototype.onAdd = function (map) {
   this._map = map;
-  this._map.on('styledata', this._initialStyleUpdate);
+  this._map.on('style.load', this._initialStyleUpdate);
   this._container = document.createElement('div');
   return this._container;
 };
 
 MapboxLanguage.prototype.onRemove = function () {
-  this._map.off('styledata', this._initialStyleUpdate);
+  this._map.off('style.load', this._initialStyleUpdate);
   this._map = undefined;
 };
 
