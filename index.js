@@ -135,6 +135,7 @@ function getLanguageTextField(language) {
   _styleExpressCoalesce = [
     'case',
     ['==', _styleExpressCoalesce, '中華民國'], '台灣',
+    ['==', _styleExpressCoalesce, '中華民国'], '台灣',
     _styleExpressCoalesce
   ];
 
