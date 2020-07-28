@@ -79,24 +79,25 @@ function isLanguageTextField(field) {
 
 function changeLayerTextProperty(layer, languageField, excludedLayerIds) {
   var newLayerData;
-  if ([
-      'admin-0-boundary',
-      'admin-1-boundary',
-      'admin-0-boundary-disputed',
-      'admin-1-boundary-bg',
-      'admin-0-boundary-bg'
-    ].indexOf(layer.id) > -1
-  ) {
-    newLayerData = {
-      filter: [
-        'match',
-        ['get', 'worldview'],
-        ['all', 'CN'],
-        true,
-        false
-      ]
-    };
-  }
+  // 此处覆盖的filter与官方不同，会导致省界被绘制两遍
+  //   if ([
+  //       'admin-0-boundary',
+  //       'admin-1-boundary',
+  //       'admin-0-boundary-disputed',
+  //       'admin-1-boundary-bg',
+  //       'admin-0-boundary-bg'
+  //     ].indexOf(layer.id) > -1
+  //   ) {
+  //     newLayerData = {
+  //       filter: [
+  //         'match',
+  //         ['get', 'worldview'],
+  //         ['all', 'CN'],
+  //         true,
+  //         false
+  //       ]
+  //     };
+  //   }
 
   if (layer.layout && layer.layout['text-field'] && excludedLayerIds.indexOf(layer.id) === -1) {
     var textField = filterTextFiled(layer.layout['text-field'], languageField);
