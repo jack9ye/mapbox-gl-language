@@ -151,39 +151,40 @@ function getLanguageTextField(language) {
     ['get', 'name'], 
 
     // If the point's local language name is the same to current map language, then only show the point's local language name.
-    [
-      'all',
-      _styleExpressAny,
-      [
-        'any',
-        [
-          '==', 
-          _styleExpressCoalesce,
-          ['get', 'name']
-        ],
-        [
-          'in', 
-          _styleExpressCoalesce,
-          ['get', 'name']
-        ],
-        [
-          'in', 
-          ['get', 'name'],
-          _styleExpressCoalesce
-        ]
-      ]
-    ],
+//     [
+//       'all',
+//       _styleExpressAny,
+//       [
+//         'any',
+//         [
+//           '==', 
+//           _styleExpressCoalesce,
+//           ['get', 'name']
+//         ],
+//         [
+//           'in', 
+//           _styleExpressCoalesce,
+//           ['get', 'name']
+//         ],
+//         [
+//           'in', 
+//           ['get', 'name'],
+//           _styleExpressCoalesce
+//         ]
+//       ]
+//     ],
     _styleExpressCoalesce,
+    // 不要添加额外的本地语言地名
 
     // Default: 
     // If the point's local language name is not the same to current map language, 
     // then show both current map language and the point's local language name.
-    [
-      'format', 
-      _styleExpressCoalesce, {},
-      '\n', {},
-      ['get', 'name'], {"font-scale": 0.8}
-    ]
+//     [
+//       'format', 
+//       _styleExpressCoalesce, {},
+//       '\n', {},
+//       ['get', 'name'], {"font-scale": 0.8}
+//     ]
   ];
 
   return textField;
